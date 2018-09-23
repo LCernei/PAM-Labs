@@ -11,15 +11,21 @@ import android.app.NotificationManager
 import android.app.NotificationChannel
 import android.os.Build
 import android.support.v4.app.NotificationManagerCompat
-
-
-
-
+import android.graphics.Bitmap
+import android.app.Activity
+import android.provider.MediaStore
+import android.widget.RadioButton
+import android.widget.ImageView
+import android.widget.RadioGroup
 
 
 class MainActivity : AppCompatActivity() {
 
     lateinit var editText : EditText
+    private var front = false
+    private var imageView: ImageView? = null
+    lateinit var rg: RadioGroup
+
 
     private fun createNotificationChannel() {
         // Create the NotificationChannel, but only on API 26+ because
@@ -41,7 +47,10 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        createNotificationChannel();
+        createNotificationChannel()
+
+        imageView = this.findViewById(R.id.imageView) as ImageView
+        rg = findViewById(R.id.radioGroup)
     }
 
     fun sendNotification(v: View) {
@@ -60,6 +69,40 @@ class MainActivity : AppCompatActivity() {
         val uri = Uri.parse("https://www.google.com/search?q=" + editText.text.toString())
         val intent = Intent(Intent.ACTION_VIEW, uri)
         startActivity(intent)
+    }
+
+    fun choose(v: View) {
+        val radioID = rg.checkedRadioButtonId
+        val rb = findViewById<View>(radioID) as RadioButton
+        front = rb.text == "Front"
+    }
+
+    fun openCamera(v: View) {
+
+        val intent: Intent
+        if (front) {
+            intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+            intent.putExtra("android.intent.extras.CAMERA_FACING", 1)
+        } else {
+            intent = Intent("android.media.action.IMAGE_CAPTURE")
+        }
+        startActivityForResult(intent, CAMERA_REQUEST)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent) {
+        if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
+            val photo = data.extras!!.get("data") as Bitmap
+            imageView!!.setImageBitmap(photo)
+        }
+    }
+
+    fun reset(v: View) {
+        finish();
+        System.exit(0);
+    }
+
+    companion object {
+        private const val CAMERA_REQUEST = 1888
     }
 
 }
